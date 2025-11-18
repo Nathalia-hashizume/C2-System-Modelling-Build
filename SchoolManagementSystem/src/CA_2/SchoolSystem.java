@@ -1,7 +1,6 @@
 package CA_2;
 
 // --- A. IMPORTS ---
-// Added for reading files and using lists
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -10,6 +9,9 @@ import java.util.List;
 import java.util.Scanner;
 
 public class SchoolSystem {
+
+    // GLOBAL LIST: Stores applicants so both Sort and Search options can access it
+    private static List<Applicant> applicantList = new ArrayList<>();
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -26,8 +28,9 @@ public class SchoolSystem {
 
             int choice = -1;
             try {
-                // Read the whole line to avoid buffer issues
-                choice = Integer.parseInt(scanner.nextLine());
+                // Read entire line to prevent buffer errors
+                String input = scanner.nextLine();
+                choice = Integer.parseInt(input);
             } catch (NumberFormatException e) {
                 System.out.println("Invalid input. Please enter a number.");
                 continue;
@@ -40,43 +43,66 @@ public class SchoolSystem {
                 continue;
             }
 
-            // --- C. UPDATED SWITCH ---
-            // The 'case SORT_APPLICANTS' was modified
             switch (selectedOption) {
                 case SORT_APPLICANTS:
+                    // [OPTION 1] Read File and Sort
                     System.out.println("Reading and sorting the applicant list...");
                     
-                    // 1. Read the file 
-                    List<Applicant> applicants = readApplicantsFile("Applicants_Form - Sample data file for read (1).txt");
+                    // 1. Load data into the global list
+                    applicantList = readApplicantsFile("Applicants_Form - Sample data file for read (1).txt");
                     
-                    if (!applicants.isEmpty()) {
-                        // 2. Sort the list using Merge Sort
-                        mergeSort(applicants);
+                    if (!applicantList.isEmpty()) {
+                        // 2. Sort using Recursive Merge Sort
+                        mergeSort(applicantList);
                         
-                        // 3. Display the first 20 names 
+                        // 3. Display Top 20
                         System.out.println("\n--- Top 20 Applicants (Sorted Alphabetically) ---");
                         int count = 0;
-                        for (Applicant app : applicants) {
+                        for (Applicant app : applicantList) {
                             if (count >= 20) break;
                             System.out.println((count + 1) + ". " + app.getFullName());
                             count++;
                         }
                     } else {
-                        System.out.println("No applicants were loaded. Check the file.");
+                        System.out.println("No applicants loaded. Please check the file name.");
                     }
                     break;
+
                 case SEARCH_APPLICANTS:
+                    // [OPTION 2] Binary Search
                     System.out.println("You selected: SEARCH");
-                  
+                    
+                    // Validation: List must be loaded and sorted first
+                    if (applicantList.isEmpty()) {
+                        System.out.println("ERROR: The list is empty. Please run Option 1 (Sort) first to load the data.");
+                        break;
+                    }
+
+                    System.out.print("Enter the full name to search (Case Sensitive): ");
+                    String nameToSearch = scanner.nextLine().trim(); // trim removes extra spaces
+
+                    // Call Recursive Binary Search
+                    // We search from index 0 to the last index
+                    Applicant foundApplicant = binarySearch(applicantList, nameToSearch, 0, applicantList.size() - 1);
+
+                    if (foundApplicant != null) {
+                        System.out.println("\n*** APPLICANT FOUND ***");
+                        System.out.println("Name: " + foundApplicant.getFullName());
+                        System.out.println("Department: " + foundApplicant.getDepartment());
+                        System.out.println("Manager Type (Job Title): " + foundApplicant.getJobTitle());
+                    } else {
+                        System.out.println("Applicant '" + nameToSearch + "' was not found in the list.");
+                    }
                     break;
+
                 case ADD_USER:
-                    System.out.println("You selected: ADD USER");
-                  
+                    System.out.println("You selected: ADD USER (Coming soon...)");
                     break;
+                    
                 case BINARY_TREE:
-                    System.out.println("You selected: BINARY TREE");
-                   
+                    System.out.println("You selected: BINARY TREE (Coming soon...)");
                     break;
+                    
                 case EXIT:
                     System.out.println("Exiting system...");
                     running = false;
@@ -85,92 +111,90 @@ public class SchoolSystem {
         }
         scanner.close();
         
-    } // END OF 'main' METHOD 
+    } // END OF MAIN METHOD
 
-    // B. NEW METHODS (Reading and Sorting)
-    // Pasted here, AFTER 'main' and BEFORE the class closes
     
+    // HELPER METHODS (File I/O, Sorting, Searching)
     /**
-     * Reads the applicant CSV file and returns a list of Applicant objects.
-     * @param fileName The name of the file to read.
-     * @return A list of applicants.
+     * Reads the CSV file and returns a list of Applicant objects.
      */
     private static List<Applicant> readApplicantsFile(String fileName) {
         List<Applicant> applicants = new ArrayList<>();
-        // "try-with-resources" ensures the file is closed automatically
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             String line;
-            
-            // Skip header line
-            br.readLine(); 
-
+            br.readLine(); // Skip header
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
                 if (values.length >= 8) {
-                    // We only get the fields we need: 0=First, 1=Last, 5=Dept, 7=JobTitle
+                    // 0=FirstName, 1=LastName, 5=Department, 7=JobTitle
                     applicants.add(new Applicant(values[0], values[1], values[5], values[7]));
                 }
             }
         } catch (IOException e) {
             System.out.println("Error reading file: " + e.getMessage());
         }
-        System.out.println("File read successfully. " + applicants.size() + " records loaded.");
+        System.out.println("File loaded: " + applicants.size() + " records.");
         return applicants;
     }
 
-    // --- RECURSIVE SORTING ALGORITHM (Merge Sort) ---
-    
-    /**
-     * Main recursive Merge Sort method.
-     * @param list The list of applicants to be sorted.
-     */
+    // RECURSIVE MERGE SORT
     private static void mergeSort(List<Applicant> list) {
         int n = list.size();
-        if (n < 2) {
-            return; // List is already sorted (recursion base case)
-        }
+        if (n < 2) return; // Base case
         
-        // 1. Divide
         int mid = n / 2;
         List<Applicant> left = new ArrayList<>(list.subList(0, mid));
         List<Applicant> right = new ArrayList<>(list.subList(mid, n));
         
-        // 2. Conquer (call itself recursively)
         mergeSort(left);
         mergeSort(right);
-        
-        // 3. Combine
         merge(list, left, right);
     }
 
-    /**
-     * Helper method to merge two sorted lists.
-     * @param list The original list to be modified.
-     * @param left The sorted left half.
-     * @param right The sorted right half.
-     */
     private static void merge(List<Applicant> list, List<Applicant> left, List<Applicant> right) {
         int i = 0, j = 0, k = 0;
-        int leftSize = left.size();
-        int rightSize = right.size();
-
-        while (i < leftSize && j < rightSize) {
-            // Compares full names to sort alphabetically
+        while (i < left.size() && j < right.size()) {
             if (left.get(i).getFullName().compareTo(right.get(j).getFullName()) <= 0) {
                 list.set(k++, left.get(i++));
             } else {
                 list.set(k++, right.get(j++));
             }
         }
-        
-        // Copy remaining elements from left list (if any)
-        while (i < leftSize) {
-            list.set(k++, left.get(i++));
+        while (i < left.size()) list.set(k++, left.get(i++));
+        while (j < right.size()) list.set(k++, right.get(j++));
+    }
+
+    // RECURSIVE BINARY SEARCH
+    /**
+     * Recursive Binary Search to find an applicant by name.
+     * REQUIREMENT: The list MUST be sorted first.
+     */
+    private static Applicant binarySearch(List<Applicant> list, String targetName, int left, int right) {
+        // Base Case: If left index is greater than right, element is not present
+        if (left > right) {
+            return null;
         }
-        // Copy remaining elements from right list (if any)
-        while (j < rightSize) {
-            list.set(k++, right.get(j++));
+
+        // 1. Calculate Middle Index
+        int mid = left + (right - left) / 2;
+        String midName = list.get(mid).getFullName();
+
+        // 2. Compare names (Case sensitive as strings usually are)
+        int comparison = targetName.compareTo(midName);
+
+        if (comparison == 0) {
+            // Target found at mid
+            return list.get(mid);
+        }
+
+        // 3. Recursive calls
+        if (comparison < 0) {
+            // Target is in the left half
+            return binarySearch(list, targetName, left, mid - 1);
+        } else {
+            // Target is in the right half
+            return binarySearch(list, targetName, mid + 1, right);
         }
     }
     
-} 
+}
