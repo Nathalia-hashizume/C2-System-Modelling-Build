@@ -1,6 +1,6 @@
 package CA_2;
 
-// --- A. IMPORTS ---
+// IMPORTS
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -10,8 +10,14 @@ import java.util.Scanner;
 
 public class SchoolSystem {
 
-    // GLOBAL LIST: Stores applicants so both Sort and Search options can access it
+    // GLOBAL LIST: Stores applicants so all methods can access it
     private static List<Applicant> applicantList = new ArrayList<>();
+
+    // VALIDATION LISTS (For Option 3
+    // Allowed Departments
+    private static final String[] VALID_DEPTS = {"IT Development", "HR", "Finance", "Sales", "Marketing", "Operations"};
+    // Allowed Job Titles (Manager Types)
+    private static final String[] VALID_JOBS = {"Manager", "Senior Manager", "Team Lead", "Assistant Manager", "Clerk", "Intern"};
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -28,7 +34,6 @@ public class SchoolSystem {
 
             int choice = -1;
             try {
-                // Read entire line to prevent buffer errors
                 String input = scanner.nextLine();
                 choice = Integer.parseInt(input);
             } catch (NumberFormatException e) {
@@ -48,14 +53,11 @@ public class SchoolSystem {
                     // [OPTION 1] Read File and Sort
                     System.out.println("Reading and sorting the applicant list...");
                     
-                    // 1. Load data into the global list
+                    // MAKE SURE THE FILE NAME IS CORRECT
                     applicantList = readApplicantsFile("Applicants_Form - Sample data file for read (1).txt");
                     
                     if (!applicantList.isEmpty()) {
-                        // 2. Sort using Recursive Merge Sort
                         mergeSort(applicantList);
-                        
-                        // 3. Display Top 20
                         System.out.println("\n--- Top 20 Applicants (Sorted Alphabetically) ---");
                         int count = 0;
                         for (Applicant app : applicantList) {
@@ -64,39 +66,34 @@ public class SchoolSystem {
                             count++;
                         }
                     } else {
-                        System.out.println("No applicants loaded. Please check the file name.");
+                        System.out.println("No applicants loaded. Check file name.");
                     }
                     break;
 
                 case SEARCH_APPLICANTS:
                     // [OPTION 2] Binary Search
                     System.out.println("You selected: SEARCH");
-                    
-                    // Validation: List must be loaded and sorted first
                     if (applicantList.isEmpty()) {
-                        System.out.println("ERROR: The list is empty. Please run Option 1 (Sort) first to load the data.");
+                        System.out.println("ERROR: List is empty. Run Option 1 first.");
                         break;
                     }
-
-                    System.out.print("Enter the full name to search (Case Sensitive): ");
-                    String nameToSearch = scanner.nextLine().trim(); // trim removes extra spaces
-
-                    // Call Recursive Binary Search
-                    // We search from index 0 to the last index
+                    System.out.print("Enter full name to search (Case Sensitive): ");
+                    String nameToSearch = scanner.nextLine().trim();
                     Applicant foundApplicant = binarySearch(applicantList, nameToSearch, 0, applicantList.size() - 1);
 
                     if (foundApplicant != null) {
                         System.out.println("\n*** APPLICANT FOUND ***");
                         System.out.println("Name: " + foundApplicant.getFullName());
                         System.out.println("Department: " + foundApplicant.getDepartment());
-                        System.out.println("Manager Type (Job Title): " + foundApplicant.getJobTitle());
+                        System.out.println("Manager Type: " + foundApplicant.getJobTitle());
                     } else {
-                        System.out.println("Applicant '" + nameToSearch + "' was not found in the list.");
+                        System.out.println("Applicant '" + nameToSearch + "' not found.");
                     }
                     break;
 
                 case ADD_USER:
-                    System.out.println("You selected: ADD USER (Coming soon...)");
+                    // [OPTION 3] Add New User
+                    addNewUser(scanner);
                     break;
                     
                 case BINARY_TREE:
@@ -110,14 +107,13 @@ public class SchoolSystem {
             }
         }
         scanner.close();
-        
-    } // END OF MAIN METHOD
+    } // --- END OF MAIN METHOD ---
 
+    // =======================================================
+    // --- HELPER METHODS ---
+    // =======================================================
     
-    // HELPER METHODS (File I/O, Sorting, Searching)
-    /**
-     * Reads the CSV file and returns a list of Applicant objects.
-     */
+    // 1. Read File
     private static List<Applicant> readApplicantsFile(String fileName) {
         List<Applicant> applicants = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
@@ -126,7 +122,6 @@ public class SchoolSystem {
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
                 if (values.length >= 8) {
-                    // 0=FirstName, 1=LastName, 5=Department, 7=JobTitle
                     applicants.add(new Applicant(values[0], values[1], values[5], values[7]));
                 }
             }
@@ -137,15 +132,13 @@ public class SchoolSystem {
         return applicants;
     }
 
-    // RECURSIVE MERGE SORT
+    // 2. Merge Sort
     private static void mergeSort(List<Applicant> list) {
         int n = list.size();
-        if (n < 2) return; // Base case
-        
+        if (n < 2) return;
         int mid = n / 2;
         List<Applicant> left = new ArrayList<>(list.subList(0, mid));
         List<Applicant> right = new ArrayList<>(list.subList(mid, n));
-        
         mergeSort(left);
         mergeSort(right);
         merge(list, left, right);
@@ -164,37 +157,61 @@ public class SchoolSystem {
         while (j < right.size()) list.set(k++, right.get(j++));
     }
 
-    // RECURSIVE BINARY SEARCH
-    /**
-     * Recursive Binary Search to find an applicant by name.
-     * REQUIREMENT: The list MUST be sorted first.
-     */
+    // 3. Binary Search
     private static Applicant binarySearch(List<Applicant> list, String targetName, int left, int right) {
-        // Base Case: If left index is greater than right, element is not present
-        if (left > right) {
-            return null;
-        }
-
-        // 1. Calculate Middle Index
+        if (left > right) return null;
         int mid = left + (right - left) / 2;
         String midName = list.get(mid).getFullName();
-
-        // 2. Compare names (Case sensitive as strings usually are)
         int comparison = targetName.compareTo(midName);
-
-        if (comparison == 0) {
-            // Target found at mid
-            return list.get(mid);
-        }
-
-        // 3. Recursive calls
-        if (comparison < 0) {
-            // Target is in the left half
-            return binarySearch(list, targetName, left, mid - 1);
-        } else {
-            // Target is in the right half
-            return binarySearch(list, targetName, mid + 1, right);
-        }
+        if (comparison == 0) return list.get(mid);
+        if (comparison < 0) return binarySearch(list, targetName, left, mid - 1);
+        else return binarySearch(list, targetName, mid + 1, right);
     }
-    
-}
+
+    // 4. Add New User (Option 3)
+    private static void addNewUser(Scanner scanner) {
+        System.out.println("\n--- Add New Applicant ---");
+        System.out.print("Enter First Name: ");
+        String fName = scanner.nextLine().trim();
+        System.out.print("Enter Last Name: ");
+        String lName = scanner.nextLine().trim();
+        
+        String selectedDept = "";
+        boolean validDept = false;
+        while (!validDept) {
+            System.out.println("Available Departments: [IT Development, HR, Finance, Sales, Marketing, Operations]");
+            System.out.print("Enter Department: ");
+            String inputDept = scanner.nextLine().trim();
+            for (String dept : VALID_DEPTS) {
+                if (dept.equalsIgnoreCase(inputDept)) {
+                    selectedDept = dept;
+                    validDept = true;
+                    break;
+                }
+            }
+            if (!validDept) System.out.println("Invalid Department! Try again.");
+        }
+        
+        String selectedJob = "";
+        boolean validJob = false;
+        while (!validJob) {
+            System.out.println("Available Positions: [Manager, Senior Manager, Team Lead, Assistant Manager, Clerk, Intern]");
+            System.out.print("Enter Position: ");
+            String inputJob = scanner.nextLine().trim();
+            for (String job : VALID_JOBS) {
+                if (job.equalsIgnoreCase(inputJob)) {
+                    selectedJob = job;
+                    validJob = true;
+                    break;
+                }
+            }
+            if (!validJob) System.out.println("Invalid Position! Try again.");
+        }
+        
+        Applicant newApp = new Applicant(fName, lName, selectedDept, selectedJob);
+        applicantList.add(newApp);
+        mergeSort(applicantList); // Re-sort automatically
+        System.out.println("\nSUCCESS: User " + newApp.getFullName() + " added and list re-sorted!");
+    }
+
+} // --- END OF CLASS ---
