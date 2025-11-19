@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays; // Added for cleaner printing in validation
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -15,8 +16,7 @@ public class SchoolSystem {
     // GLOBAL LIST: Stores applicants so all methods can access it
     private static List<Applicant> applicantList = new ArrayList<>();
 
-    // VALIDATION LISTS (For Option 3
-    // Allowed Departments
+    // VALIDATION LISTS 
     private static final String[] VALID_DEPTS = {"Mathematics", "English", "Science", "History", "Administration", "Sports", "Library"};
     // Allowed Job Titles (Manager Types)
     private static final String[] VALID_JOBS = {"Director", "Vice-Director", "Head of Year", "Teacher", "Admin Staff", "Coordinator"};
@@ -49,7 +49,7 @@ public class SchoolSystem {
                 System.out.println("Invalid option. Please try again.");
                 continue;
             }
-
+            
             switch (selectedOption) {
                 case SORT_APPLICANTS:
                     // [OPTION 1] Read File and Sort
@@ -85,7 +85,7 @@ public class SchoolSystem {
                         System.out.println("\n*** APPLICANT FOUND ***");
                         System.out.println("Name: " + foundApplicant.getFullName());
                         System.out.println("Department: " + foundApplicant.getDepartment());
-                        System.out.println("Manager Type: " + foundApplicant.getJobTitle());
+                        System.out.println("Function Type: " + foundApplicant.getJobTitle());
                     } else {
                         System.out.println("Applicant '" + nameToSearch + "' not found.");
                     }
@@ -97,8 +97,25 @@ public class SchoolSystem {
                     break;
                     
                 case BINARY_TREE:
-                    System.out.println("You selected: BINARY TREE (Coming soon...)");
+                    //Binary Tree Structure
+                    if (applicantList.isEmpty()) {
+                    System.out.println("ERROR: List Empty. Run Option 1 first to load data.");
                     break;
+                    }
+                    System.out.println("Building Employee Hierarchy Tree (Level-Order)...");
+                    
+                    //1. Build Tree with first 20 records (requirement)
+                    Node root = buildLevelOrderTree(applicantList, 20);
+                    
+                    //2. Display Level Order Traversal
+                    System.out.println("\n--- Level Order Traversal (Name and Role)---");
+                    printLevelOrder(root);
+                    
+                    //3. Display Stats
+                    System.out.println("\n\n--- Tree Statistics---");
+                    System.out.println("Total Nodes: " + countNodes(root));
+                    System.out.println("Tree Height: " + getHeight(root));
+                    break;              
                     
                 case EXIT:
                     System.out.println("Exiting system...");
@@ -211,5 +228,61 @@ public class SchoolSystem {
         mergeSort(applicantList); // Re-sort automatically
         System.out.println("\nSUCCESS: User " + newApp.getFullName() + " added and list re-sorted!");
     }
+    
+    //5. BINARY TREE METHODS (OPTION 4) - NOVOS MÉTODOS
+    
+    // Insert first 'limit' records into tree using Level Order
+    private static Node buildLevelOrderTree(List<Applicant> list, int limit) {
+        if (list.isEmpty()) return null;
+       
+        Node root = new Node(list.get(0));
+        Queue<Node> queue = new LinkedList<>();
+        queue.add(root);
+        
+        int i = 1;
+        while (i < list.size() && i < limit) {
+            Node current = queue.peek(); 
+            
+            if (current.left == null) {
+                current.left = new Node(list.get(i));
+                queue.add(current.left);
+                i++;
+            } else if (current.right == null) {
+                current.right = new Node(list.get(i));
+                queue.add(current.right);
+                i++;
+                queue.poll(); // Current node is full, remove from queue
+            }
+        }
+        return root;
+    }
 
-} // --- END OF CLASS ---
+    // Display Tree (Level Order Traversal)
+    private static void printLevelOrder(Node root) {
+        if (root == null) return;
+        Queue<Node> queue = new LinkedList<>();
+        queue.add(root);
+        while (!queue.isEmpty()) {
+            Node temp = queue.poll();
+            // Print format: Name (Role)
+            System.out.print(temp.data.getFullName() + " (" + temp.data.getJobTitle() + ") | ");
+            
+            if (temp.left != null) queue.add(temp.left);
+            if (temp.right != null) queue.add(temp.right);
+        }
+    }
+
+    // Calculate Height (Recursive)
+    private static int getHeight(Node node) {
+        if (node == null) return 0;
+        int leftH = getHeight(node.left);
+        int rightH = getHeight(node.right);
+        return Math.max(leftH, rightH) + 1;
+    }
+
+    //Count Nodes (Recursive)
+    private static int countNodes(Node node) {
+        if (node == null) return 0;
+        return 1 + countNodes(node.left) + countNodes(node.right);
+    }
+}
