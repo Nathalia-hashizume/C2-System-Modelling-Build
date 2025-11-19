@@ -1,6 +1,7 @@
 package CA_2;
 
 public class Node {
+    Applicant data; // The employee kept in this Node
     Node left;
     Node right;
     
