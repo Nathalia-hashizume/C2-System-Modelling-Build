@@ -5,7 +5,9 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Scanner;
 
 public class SchoolSystem {
@@ -15,9 +17,9 @@ public class SchoolSystem {
 
     // VALIDATION LISTS (For Option 3
     // Allowed Departments
-    private static final String[] VALID_DEPTS = {"IT Development", "HR", "Finance", "Sales", "Marketing", "Operations"};
+    private static final String[] VALID_DEPTS = {"Mathematics", "English", "Science", "History", "Administration", "Sports", "Library"};
     // Allowed Job Titles (Manager Types)
-    private static final String[] VALID_JOBS = {"Manager", "Senior Manager", "Team Lead", "Assistant Manager", "Clerk", "Intern"};
+    private static final String[] VALID_JOBS = {"Director", "Vice-Director", "Head of Year", "Teacher", "Admin Staff", "Coordinator"};
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -52,8 +54,6 @@ public class SchoolSystem {
                 case SORT_APPLICANTS:
                     // [OPTION 1] Read File and Sort
                     System.out.println("Reading and sorting the applicant list...");
-                    
-                    // MAKE SURE THE FILE NAME IS CORRECT
                     applicantList = readApplicantsFile("Applicants_Form - Sample data file for read (1).txt");
                     
                     if (!applicantList.isEmpty()) {
@@ -107,11 +107,9 @@ public class SchoolSystem {
             }
         }
         scanner.close();
-    } // --- END OF MAIN METHOD ---
+    } // END OF MAIN METHOD
 
-    // =======================================================
-    // --- HELPER METHODS ---
-    // =======================================================
+    // HELPER METHODS
     
     // 1. Read File
     private static List<Applicant> readApplicantsFile(String fileName) {
