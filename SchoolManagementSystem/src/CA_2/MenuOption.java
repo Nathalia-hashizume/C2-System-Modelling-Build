@@ -1,5 +1,8 @@
 package CA_2;
 
+//Enum defining the available menu options for the applicantion.
+//This creates a structured and type-safe way to handle menu selection.
+
 public enum MenuOption {
     SORT_APPLICANTS(1, "Sort a Dummy List of People"),
     SEARCH_APPLICANTS(2, "Search in the List"),
@@ -23,6 +26,7 @@ public enum MenuOption {
         return description;
     }
     
+    // Helper method to get a Enum constant from an integer ID.
     public static MenuOption fromId(int id) {
         for (MenuOption option : values()) {
             if (option.getId() == id) {

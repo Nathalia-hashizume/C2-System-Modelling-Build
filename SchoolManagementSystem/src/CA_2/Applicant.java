@@ -1,13 +1,22 @@
 package CA_2;
 
-public class Applicant {
+//Represents an Applicant in the organization
+//Basic identity from the Emplloyee class.
+
+public class Applicant extends Employee {
     
-    String firstName, lastName, department, jobTitle;
-    public Applicant(String f, String l, String d, String j) {
-        firstName=f; lastName=l; department=d; jobTitle=j;
+    //Specific attributes for the Applicant
+    private String department;
+    private String jobTitle;
+    
+    public Applicant(String firstName, String lastName, String department, String jobTitle) {
+        //Passes the full name to the parent Employee class
+        super(firstName + "" + lastName);
+        this.department = department;
+        this.jobTitle = jobTitle;
     }
     
-    public String getFullName() { return firstName + " " + lastName; }
+    public String getFullName() { return super.getName(); }
     public String getDepartment() { return department; }
     public String getJobTitle() { return jobTitle; }
     @Override public String toString() { return getFullName(); }
