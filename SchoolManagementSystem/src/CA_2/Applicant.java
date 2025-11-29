@@ -11,7 +11,7 @@ public class Applicant extends Employee {
     
     public Applicant(String firstName, String lastName, String department, String jobTitle) {
         //Passes the full name to the parent Employee class
-        super(firstName + "" + lastName);
+        super(firstName + " " + lastName);
         this.department = department;
         this.jobTitle = jobTitle;
     }
