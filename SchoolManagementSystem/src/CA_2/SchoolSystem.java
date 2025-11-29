@@ -5,21 +5,28 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays; // Added for cleaner printing in validation
+import java.util.Arrays; 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Scanner;
 
+// Main class for the School Management System
+//Handles the console menu, file reading, sorting, searching, and binary tree generation
 public class SchoolSystem {
 
     // GLOBAL LIST: Stores applicants so all methods can access it
     private static List<Applicant> applicantList = new ArrayList<>();
 
-    // VALIDATION LISTS 
+    // VALIDATION LISTS for User Input
+    //Departments
     private static final String[] VALID_DEPTS = {"Mathematics", "English", "Science", "History", "Administration", "Sports", "Library"};
-    // Allowed Job Titles (Manager Types)
+    //Job Titles
     private static final String[] VALID_JOBS = {"Director", "Vice-Director", "Head of Year", "Teacher", "Admin Staff", "Coordinator"};
+    
+    //Random Generation ARRAY 
+    private static final String[] RANDOM_FIRST_NAMES = {"James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Cristina", "William", "Elizabeth", "David", "Barbara"};
+    private static final String[] RANDOM_LAST_NAMES = {"Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez"};
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -27,8 +34,10 @@ public class SchoolSystem {
 
         System.out.println("Welcome to the School Management System");
 
+        // Main application loop
         while (running) {
             System.out.println("\n--- MAIN MENU ---");
+            //Using Enum to display options
             for (MenuOption option : MenuOption.values()) {
                 System.out.println(option.getId() + ". " + option.getDescription());
             }
@@ -57,6 +66,7 @@ public class SchoolSystem {
                     applicantList = readApplicantsFile("Applicants_Form - Sample data file for read (1).txt");
                     
                     if (!applicantList.isEmpty()) {
+                        // Calls the recursive merge sort
                         mergeSort(applicantList);
                         System.out.println("\n--- Top 20 Applicants (Sorted Alphabetically) ---");
                         int count = 0;
@@ -77,8 +87,12 @@ public class SchoolSystem {
                         System.out.println("ERROR: List is empty. Run Option 1 first.");
                         break;
                     }
+                    //Ensures that it is sorted before the binary search.
+                    mergeSort(applicantList);
+                    
                     System.out.print("Enter full name to search (Case Sensitive): ");
                     String nameToSearch = scanner.nextLine().trim();
+                    //Performm Binary Search
                     Applicant foundApplicant = binarySearch(applicantList, nameToSearch, 0, applicantList.size() - 1);
 
                     if (foundApplicant != null) {
@@ -92,12 +106,17 @@ public class SchoolSystem {
                     break;
 
                 case ADD_USER:
-                    // [OPTION 3] Add New User
+                    // [OPTION 3] Add New User with Validation
                     addNewUser(scanner);
                     break;
                     
+                case GENERATE_RANDOM:
+                    // OPTION 4: Generate Random Data
+                    generateRandomData(scanner);
+                    break;
+                   
                 case BINARY_TREE:
-                    //Binary Tree Structure
+                    // [OPTION4] Binary Tree Structure
                     if (applicantList.isEmpty()) {
                     System.out.println("ERROR: List Empty. Run Option 1 first to load data.");
                     break;
@@ -111,7 +130,7 @@ public class SchoolSystem {
                     System.out.println("\n--- Level Order Traversal (Name and Role)---");
                     printLevelOrder(root);
                     
-                    //3. Display Stats
+                    //3. Display Tree Stats
                     System.out.println("\n\n--- Tree Statistics---");
                     System.out.println("Total Nodes: " + countNodes(root));
                     System.out.println("Tree Height: " + getHeight(root));
@@ -148,12 +167,17 @@ public class SchoolSystem {
     }
 
     // 2. Merge Sort
+    //I chose Merge Sort for this task because:
+     // 1. It is a recursive algorithm, fulfilling the assessment requirement.
+     // 2. It offers a stable time complexity of O(n log n) in worst-case scenarios.
+     // 3. Unlike QuickSort, it does not degrade to O(n^2) on already sorted or reverse-sorted data.
     private static void mergeSort(List<Applicant> list) {
         int n = list.size();
         if (n < 2) return;
         int mid = n / 2;
         List<Applicant> left = new ArrayList<>(list.subList(0, mid));
         List<Applicant> right = new ArrayList<>(list.subList(mid, n));
+       
         mergeSort(left);
         mergeSort(right);
         merge(list, left, right);
@@ -173,6 +197,11 @@ public class SchoolSystem {
     }
 
     // 3. Binary Search
+    //I chose Binary Search for this task because:
+    // 1. The list is already sorted (via Merge Sort), which is a prerequisite.
+    // 2. It is much more efficient than Linear Search, with O(log n) complexity.
+    // 3. This efficiency is crucial when searching through large datasets of employees.
+     
     private static Applicant binarySearch(List<Applicant> list, String targetName, int left, int right) {
         if (left > right) return null;
         int mid = left + (right - left) / 2;
@@ -191,37 +220,8 @@ public class SchoolSystem {
         System.out.print("Enter Last Name: ");
         String lName = scanner.nextLine().trim();
         
-        String selectedDept = "";
-        boolean validDept = false;
-        while (!validDept) {
-            System.out.println("Available Departments: [IT Development, HR, Finance, Sales, Marketing, Operations]");
-            System.out.print("Enter Department: ");
-            String inputDept = scanner.nextLine().trim();
-            for (String dept : VALID_DEPTS) {
-                if (dept.equalsIgnoreCase(inputDept)) {
-                    selectedDept = dept;
-                    validDept = true;
-                    break;
-                }
-            }
-            if (!validDept) System.out.println("Invalid Department! Try again.");
-        }
-        
-        String selectedJob = "";
-        boolean validJob = false;
-        while (!validJob) {
-            System.out.println("Available Positions: [Manager, Senior Manager, Team Lead, Assistant Manager, Clerk, Intern]");
-            System.out.print("Enter Position: ");
-            String inputJob = scanner.nextLine().trim();
-            for (String job : VALID_JOBS) {
-                if (job.equalsIgnoreCase(inputJob)) {
-                    selectedJob = job;
-                    validJob = true;
-                    break;
-                }
-            }
-            if (!validJob) System.out.println("Invalid Position! Try again.");
-        }
+        String selectedDept = validateInput(scanner, "Department", VALID_DEPTS);
+        String selectedJob = validateInput(scanner, "Position", VALID_JOBS);
         
         Applicant newApp = new Applicant(fName, lName, selectedDept, selectedJob);
         applicantList.add(newApp);
@@ -229,7 +229,49 @@ public class SchoolSystem {
         System.out.println("\nSUCCESS: User " + newApp.getFullName() + " added and list re-sorted!");
     }
     
-    //5. BINARY TREE METHODS (OPTION 4) - NOVOS MÉTODOS
+    // Helper to validate inputs
+    private static String validateInput(Scanner scanner, String type, String[] options) {
+        while (true) {
+            System.out.println("Available " + type + "s:");
+            for (String opt : options) System.out.print("[" + opt + "] ");
+            System.out.println();
+            System.out.print("Enter " + type + ": ");
+            String input = scanner.nextLine().trim();
+            
+            for (String opt : options) {
+                if (opt.equalsIgnoreCase(input)) return opt;
+            }
+            System.out.println("Invalid " + type + ". Please try again.");
+        }
+    }
+    
+    //5. GENERATE RANDOM DATA
+    private static void generateRandomData(Scanner scanner) {
+        System.out.print("How many random applicants to generate? ");
+        int count = 0;
+        try {
+            count = Integer.parseInt(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid number.");
+            return;
+        }
+
+        System.out.println("Generating " + count + " random records...");
+        
+        for (int i = 0; i < count; i++) {
+            String fName = RANDOM_FIRST_NAMES[(int)(Math.random() * RANDOM_FIRST_NAMES.length)];
+            String lName = RANDOM_LAST_NAMES[(int)(Math.random() * RANDOM_LAST_NAMES.length)];
+            String dept = VALID_DEPTS[(int)(Math.random() * VALID_DEPTS.length)];
+            String job = VALID_JOBS[(int)(Math.random() * VALID_JOBS.length)];
+            
+            applicantList.add(new Applicant(fName, lName, dept, job));
+        }
+        
+        mergeSort(applicantList);
+        System.out.println("Success! Total applicants: " + applicantList.size());
+    }
+    
+    //6. BINARY TREE METHODS 
     
     // Insert first 'limit' records into tree using Level Order
     private static Node buildLevelOrderTree(List<Applicant> list, int limit) {

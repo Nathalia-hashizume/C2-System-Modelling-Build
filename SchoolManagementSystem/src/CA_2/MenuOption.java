@@ -7,8 +7,9 @@ public enum MenuOption {
     SORT_APPLICANTS(1, "Sort a Dummy List of People"),
     SEARCH_APPLICANTS(2, "Search in the List"),
     ADD_USER(3, "Add New User"),
-    BINARY_TREE(4, "Create Employee Hierarchy (Binary Tree)"),
-    EXIT(5, "Exit");
+    GENERATE_RANDOM(4, "Generate Random People")
+    BINARY_TREE(5, "Create Employee Hierarchy (Binary Tree)"),
+    EXIT(6, "Exit");
 
     private final int id;
     private final String description;
